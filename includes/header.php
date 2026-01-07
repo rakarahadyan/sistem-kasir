@@ -19,7 +19,7 @@
     <!-- AdminLTE -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="assets/css/custom.css">
+    <!-- <link rel="stylesheet" href="assets/css/custom.css"> -->
 </head>
 <body class="hold-transition sidebar-mini layout-fixed">
 <div class="wrapper">

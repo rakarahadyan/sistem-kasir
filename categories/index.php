@@ -19,8 +19,8 @@ $breadcrumbs = [ ['title' => 'Dashboard', 'url' => '/sistem-kasir/index.php'], [
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="/sistem-kasir/index.php">Dashboard</a></li>
-                        <li class="breadcrumb-item active">Kategori</li>
+                        <li class="breadcrumb-item"><a href="/sistem-kasir/index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li class="breadcrumb-item active">Manajemen Kategori</li>
                     </ol>
                 </div>
             </div>
@@ -30,9 +30,9 @@ $breadcrumbs = [ ['title' => 'Dashboard', 'url' => '/sistem-kasir/index.php'], [
     <section class="content">
         <div class="container-fluid">
             <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="card-header">
                     <h3 class="card-title">Daftar Kategori</h3>
-                    <div>
+                    <div class="card-tools">
                         <button id="btnAdd" class="btn btn-primary btn-sm"><i class="fas fa-plus"></i> Tambah Kategori</button>
                     </div>
                 </div>

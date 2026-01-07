@@ -18,8 +18,8 @@ $page = 'user';
                 </div>
                 <div class="col-sm-6">
                     <ol class="breadcrumb float-sm-right">
-                        <li class="breadcrumb-item"><a href="../index.php">Dashboard</a></li>
-                        <li class="breadcrumb-item active">User</li>
+                        <li class="breadcrumb-item"><a href="../index.php"><i class="fas fa-home"></i> Dashboard</a></li>
+                        <li class="breadcrumb-item active">Manajemen User</li>
                     </ol>
                 </div>
             </div>

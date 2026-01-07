@@ -31,14 +31,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
     <link rel="stylesheet" href="assets/css/custom.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <link rel="icon" href="assets/img/logo.png" sizes="32x32">
 </head>
-<body class="hold-transition">
-    <div class="d-flex align-items-center justify-content-center" style="min-height:100vh; padding:2rem; background: linear-gradient(135deg, #f3f6ff 0%, #f6fbff 100%);">
+<body class="hold-transition dark-mode" data-bs-theme="dark">
+    <div class="d-flex align-items-center justify-content-center" style="min-height:100vh; padding:2rem; background: linear-gradient(135deg, #121418 0%, #1a1d23 100%);">
         <div class="card" style="width:380px;">
             <div class="card-header text-center" style="background: linear-gradient(90deg,#3b82f6,#2563eb); color: #fff;">
                 <h3 class="mb-0"><i class="fas fa-cash-register"></i> Sistem Kasir</h3>
