@@ -13,8 +13,12 @@ class Database {
         $this->conn = new mysqli($this->host, $this->user, $this->pass, $this->dbname);
         
         if ($this->conn->connect_error) {
-            die("Connection failed: " . $this->conn->connect_error);
+            // Don't use die() for API - throw exception instead
+            throw new Exception("Database connection failed: " . $this->conn->connect_error);
         }
+        
+        // Set charset
+        $this->conn->set_charset("utf8mb4");
     }
     
     public static function getInstance() {

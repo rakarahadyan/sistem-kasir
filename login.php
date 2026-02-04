@@ -1,6 +1,5 @@
 <?php
-require_once 'includes/auth.php';
-session_start();
+require_once 'api/auth.php';
 
 // Jika sudah login, redirect ke dashboard
 if (isLoggedIn()) {
@@ -9,18 +8,6 @@ if (isLoggedIn()) {
 }
 
 $page_title = "Login";
-
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-    
-    if (login($username, $password)) {
-        header('Location: index.php');
-        exit();
-    } else {
-        $error = "Username atau password salah!";
-    }
-}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -45,13 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <h3 class="mb-0"><i class="fas fa-cash-register"></i> Sistem Kasir</h3>
             </div>
             <div class="card-body">
-            <?php if (isset($error)): ?>
-            <div class="alert alert-danger">
-                <?php echo $error; ?>
-            </div>
-            <?php endif; ?>
-            
-            <form method="POST" action="">
+            <form id="loginForm" method="POST" action="">
                 <div class="form-group">
                     <label for="username"><i class="fas fa-user"></i> Username</label>
                     <input type="text" class="form-control" id="username" name="username" 
@@ -73,5 +54,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        const res = await fetch('/sistem-kasir/api/auth.php', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            console.log('Login berhasil');
+            window.location.href = 'index.php';
+        } else {
+            alert(data.message || 'Login gagal');
+        }
+    });
+    </script>
 </body>
 </html>

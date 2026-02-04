@@ -1,6 +1,48 @@
 <?php
-require_once 'includes/auth.php';
+require_once 'api/auth.php';
 requireLogin();
+require_once 'config/database.php';
+
+$db = Database::getInstance()->getConnection();
+
+// Total transaksi hari ini
+$stmt = $db->query("
+    SELECT COUNT(*) as count, COALESCE(SUM(total), 0) as total 
+    FROM transactions 
+    WHERE DATE(transaction_date) = CURDATE()
+");
+$result = $stmt->fetch_assoc();
+$today_transactions = $result['count'];
+$today_sales = $result['total'];
+
+// Produk stok rendah (stok <= 10)
+$stmt = $db->query("SELECT COUNT(*) as count FROM products WHERE stock <= 10 AND is_active = 1");
+$result = $stmt->fetch_assoc();
+$low_stock = $result['count'];
+
+// Total pelanggan
+$stmt = $db->query("SELECT COUNT(*) as count FROM customers");
+$result = $stmt->fetch_assoc();
+$total_customers = $result['count'];
+
+// Produk terlaris (7 hari terakhir)
+$stmt = $db->query("
+    SELECT 
+        p.name,
+        p.price,
+        SUM(ti.qty) as total_sold
+    FROM transaction_items ti
+    JOIN products p ON ti.product_id = p.id
+    JOIN transactions t ON ti.transaction_id = t.id
+    WHERE t.transaction_date >= DATE_SUB(CURDATE(), INTERVAL 7 DAY)
+    GROUP BY p.id
+    ORDER BY total_sold DESC
+    LIMIT 5
+");
+$top_products = [];
+while ($row = $stmt->fetch_assoc()) {
+    $top_products[] = $row;
+}
 
 $page_title = "Dashboard";
 $page = 'dashboard';
@@ -34,7 +76,7 @@ $page = 'dashboard';
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-info">
                         <div class="inner">
-                            <h3>150</h3>
+                            <h3><?php echo $today_transactions; ?></h3>
                             <p>Transaksi Hari Ini</p>
                         </div>
                         <div class="icon">
@@ -49,7 +91,7 @@ $page = 'dashboard';
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-success">
                         <div class="inner">
-                            <h3>Rp 12.5<sup style="font-size: 20px">jt</sup></h3>
+                            <h3>Rp <?php echo number_format($today_sales / 1000000, 1); ?><sup style="font-size: 20px">jt</sup></h3>
                             <p>Pendapatan Hari Ini</p>
                         </div>
                         <div class="icon">
@@ -64,7 +106,7 @@ $page = 'dashboard';
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-warning">
                         <div class="inner">
-                            <h3>45</h3>
+                            <h3><?php echo $low_stock; ?></h3>
                             <p>Produk Stok Rendah</p>
                         </div>
                         <div class="icon">
@@ -79,7 +121,7 @@ $page = 'dashboard';
                 <div class="col-lg-3 col-6">
                     <div class="small-box bg-danger">
                         <div class="inner">
-                            <h3>350</h3>
+                            <h3><?php echo $total_customers; ?></h3>
                             <p>Total Pelanggan</p>
                         </div>
                         <div class="icon">
@@ -110,43 +152,42 @@ $page = 'dashboard';
                 <div class="col-md-4">
                     <div class="card">
                         <div class="card-header">
-                            <h3 class="card-title">Produk Terlaris</h3>
+                            <h3 class="card-title">Produk Terlaris (7 Hari)</h3>
                         </div>
                         <div class="card-body p-0">
                             <ul class="products-list product-list-in-card pl-2 pr-2">
-                                <li class="item">
-                                    <div class="product-info">
-                                        <a href="javascript:void(0)" class="product-title">
-                                            Kopi Kapal Api
-                                            <span class="badge badge-warning float-right">Rp 15.000</span>
-                                        </a>
-                                        <span class="product-description">
-                                            Terjual: 125 unit
-                                        </span>
-                                    </div>
-                                </li>
-                                <li class="item">
-                                    <div class="product-info">
-                                        <a href="javascript:void(0)" class="product-title">
-                                            Indomie Goreng
-                                            <span class="badge badge-info float-right">Rp 3.500</span>
-                                        </a>
-                                        <span class="product-description">
-                                            Terjual: 98 unit
-                                        </span>
-                                    </div>
-                                </li>
-                                <li class="item">
-                                    <div class="product-info">
-                                        <a href="javascript:void(0)" class="product-title">
-                                            Aqua 600ml
-                                            <span class="badge badge-danger float-right">Rp 3.000</span>
-                                        </a>
-                                        <span class="product-description">
-                                            Terjual: 87 unit
-                                        </span>
-                                    </div>
-                                </li>
+                                <?php if (empty($top_products)): ?>
+                                    <li class="item">
+                                        <div class="product-info">
+                                            <span class="product-description text-center">
+                                                Belum ada data penjualan
+                                            </span>
+                                        </div>
+                                    </li>
+                                <?php else: ?>
+                                    <?php 
+                                    $badge_colors = ['warning', 'info', 'danger', 'success', 'primary'];
+                                    $index = 0;
+                                    foreach ($top_products as $product): 
+                                    ?>
+                                        <li class="item">
+                                            <div class="product-info">
+                                                <a href="javascript:void(0)" class="product-title">
+                                                    <?php echo $product['name']; ?>
+                                                    <span class="badge badge-<?php echo $badge_colors[$index % 5]; ?> float-right">
+                                                        Rp <?php echo number_format($product['price'], 0, ',', '.'); ?>
+                                                    </span>
+                                                </a>
+                                                <span class="product-description">
+                                                    Terjual: <?php echo $product['total_sold']; ?> unit
+                                                </span>
+                                            </div>
+                                        </li>
+                                    <?php 
+                                    $index++;
+                                    endforeach; 
+                                    ?>
+                                <?php endif; ?>
                             </ul>
                         </div>
                     </div>

@@ -1,6 +1,21 @@
 <?php
-require_once '../includes/auth.php';
+require_once '../api/auth.php';
 requireLogin();
+require_once '../api/products.php';
+
+// Proses delete
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    $result = deleteProduct($id);
+    if ($result['success']) {
+        header('Location: index.php?msg=deleted');
+        exit();
+    }
+}
+
+// Ambil data produk
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$products = getProducts($search);
 
 $page_title = "Manajemen Produk";
 $page = 'produk';
@@ -40,16 +55,28 @@ $page = 'produk';
                         </div>
                         
                         <div class="card-body">
+                            <?php if (isset($_GET['msg'])): ?>
+                                <?php if ($_GET['msg'] == 'deleted'): ?>
+                                    <div class="alert alert-success">Produk berhasil dihapus!</div>
+                                <?php elseif ($_GET['msg'] == 'added'): ?>
+                                    <div class="alert alert-success">Produk berhasil ditambahkan!</div>
+                                <?php elseif ($_GET['msg'] == 'updated'): ?>
+                                    <div class="alert alert-success">Produk berhasil diupdate!</div>
+                                <?php endif; ?>
+                            <?php endif; ?>
+                            
                             <div class="row mb-3">
                                 <div class="col-md-6">
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" placeholder="Cari produk..." id="searchProduct">
-                                        <div class="input-group-append">
-                                            <button class="btn btn-outline-secondary" type="button">
-                                                <i class="fas fa-search"></i>
-                                            </button>
+                                    <form method="GET" action="">
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" name="search" placeholder="Cari produk..." value="<?php echo $search; ?>">
+                                            <div class="input-group-append">
+                                                <button class="btn btn-outline-secondary" type="submit">
+                                                    <i class="fas fa-search"></i>
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    </form>
                                 </div>
                             </div>
                             
@@ -62,96 +89,39 @@ $page = 'produk';
                                             <th>Nama Produk</th>
                                             <th>Kategori</th>
                                             <th>Harga</th>
-                                            <th>Harga Beli</th>
                                             <th>Stok</th>
-                                            <th>Status</th>
                                             <th>Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td><span class="badge badge-light">899999900001</span></td>
-                                            <td>Kopi Kapal Api 200gr</td>
-                                            <td>Minuman</td>
-                                            <td>Rp 15.000</td>
-                                            <td>Rp 12.500</td>
-                                            <td>
-                                                <span class="badge badge-success">45</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-success">Aktif</span>
-                                            </td>
-                                            <td>
-                                                <a href="edit.php?id=1" class="btn btn-sm btn-warning">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td><span class="badge badge-light">899999900002</span></td>
-                                            <td>Indomie Goreng</td>
-                                            <td>Makanan</td>
-                                            <td>Rp 3.500</td>
-                                            <td>Rp 2.800</td>
-                                            <td>
-                                                <span class="badge badge-warning">12</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-success">Aktif</span>
-                                            </td>
-                                            <td>
-                                                <a href="edit.php?id=2" class="btn btn-sm btn-warning">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td><span class="badge badge-light">899999900003</span></td>
-                                            <td>Aqua 600ml</td>
-                                            <td>Minuman</td>
-                                            <td>Rp 3.000</td>
-                                            <td>Rp 2.200</td>
-                                            <td>
-                                                <span class="badge badge-danger">3</span>
-                                            </td>
-                                            <td>
-                                                <span class="badge badge-success">Aktif</span>
-                                            </td>
-                                            <td>
-                                                <a href="edit.php?id=3" class="btn btn-sm btn-warning">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <button class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
+                                        <?php if (count($products) > 0): ?>
+                                            <?php $no = 1; ?>
+                                            <?php foreach ($products as $product): ?>
+                                                <tr>
+                                                    <td><?php echo $no++; ?></td>
+                                                    <td><?php echo $product['barcode']; ?></td>
+                                                    <td><?php echo $product['name']; ?></td>
+                                                    <td><?php echo $product['category_name']; ?></td>
+                                                    <td>Rp <?php echo number_format($product['price'], 0, ',', '.'); ?></td>
+                                                    <td><?php echo $product['stock']; ?></td>
+                                                    <td>
+                                                        <a href="edit.php?id=<?php echo $product['id']; ?>" class="btn btn-sm btn-warning">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <a href="index.php?delete=<?php echo $product['id']; ?>" class="btn btn-sm btn-danger" onclick="return confirm('Hapus produk ini?')">
+                                                            <i class="fas fa-trash"></i>
+                                                        </a>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php else: ?>
+                                            <tr>
+                                                <td colspan="7" class="text-center">Tidak ada data produk</td>
+                                            </tr>
+                                        <?php endif; ?>
                                     </tbody>
                                 </table>
                             </div>
-                            
-                            <nav aria-label="Page navigation">
-                                <ul class="pagination justify-content-center">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#">Previous</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">Next</a>
-                                    </li>
-                                </ul>
-                            </nav>
                         </div>
                     </div>
                 </div>

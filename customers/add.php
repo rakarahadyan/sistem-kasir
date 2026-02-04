@@ -1,6 +1,27 @@
 <?php
-require_once '../includes/auth.php';
+require_once '../api/auth.php';
 requireLogin();
+require_once '../api/customers.php';
+
+$error = '';
+
+// Proses tambah pelanggan
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $name = trim($_POST['name']);
+    $phone = trim($_POST['phone']);
+    
+    if (empty($name) || empty($phone)) {
+        $error = 'Nama dan telepon harus diisi!';
+    } else {
+        $result = createCustomer($name, $phone);
+        if ($result['success']) {
+            header('Location: index.php?msg=added');
+            exit();
+        } else {
+            $error = $result['message'];
+        }
+    }
+}
 
 $page_title = "Tambah Pelanggan";
 $page = 'pelanggan';
@@ -35,61 +56,26 @@ $page = 'pelanggan';
                             <h3 class="card-title">Form Data Pelanggan</h3>
                         </div>
                         
-                        <form id="addCustomerForm">
+                        <?php if ($error): ?>
+                            <div class="alert alert-danger m-3"><?php echo $error; ?></div>
+                        <?php endif; ?>
+                        
+                        <form method="POST" action="">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="name">Nama Lengkap *</label>
-                                            <input type="text" class="form-control" id="name" 
-                                                   placeholder="Masukkan nama lengkap" required>
+                                            <input type="text" class="form-control" name="name" id="name" 
+                                                   placeholder="Masukkan nama lengkap" required 
+                                                   value="<?php echo isset($_POST['name']) ? $_POST['name'] : ''; ?>">
                                         </div>
                                         
                                         <div class="form-group">
                                             <label for="phone">Nomor Telepon *</label>
-                                            <input type="text" class="form-control" id="phone" 
-                                                   placeholder="0812xxxxxxxx" required>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="email">Email</label>
-                                            <input type="email" class="form-control" id="email" 
-                                                   placeholder="email@example.com">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="address">Alamat</label>
-                                            <textarea class="form-control" id="address" rows="3" 
-                                                      placeholder="Masukkan alamat lengkap"></textarea>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="customer_type">Tipe Pelanggan</label>
-                                            <select class="form-control" id="customer_type">
-                                                <option value="regular">Regular</option>
-                                                <option value="member">Member</option>
-                                                <option value="vip">VIP</option>
-                                            </select>
-                                        </div>
-                                        
-                                        <div class="form-group">
-                                            <label for="status">Status</label>
-                                            <select class="form-control" id="status">
-                                                <option value="1" selected>Aktif</option>
-                                                <option value="0">Nonaktif</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="row">
-                                    <div class="col-md-12">
-                                        <div class="form-group">
-                                            <label>Catatan</label>
-                                            <textarea class="form-control" id="notes" rows="2" 
-                                                      placeholder="Catatan tambahan"></textarea>
+                                            <input type="text" class="form-control" name="phone" id="phone" 
+                                                   placeholder="0812xxxxxxxx" required
+                                                   value="<?php echo isset($_POST['phone']) ? $_POST['phone'] : ''; ?>">
                                         </div>
                                     </div>
                                 </div>
@@ -110,24 +96,5 @@ $page = 'pelanggan';
         </div>
     </section>
 </div>
-
-<script>
-document.getElementById('addCustomerForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    // Validasi nomor telepon
-    const phone = document.getElementById('phone').value;
-    const phoneRegex = /^[0-9]{10,13}$/;
-    
-    if (!phoneRegex.test(phone)) {
-        alert('Nomor telepon harus 10-13 digit angka!');
-        return;
-    }
-    
-    // Simulasi simpan data
-    alert('Pelanggan berhasil ditambahkan!');
-    window.location.href = 'index.php';
-});
-</script>
 
 <?php include '../includes/footer.php'; ?>

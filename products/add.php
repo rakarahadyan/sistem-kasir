@@ -1,6 +1,36 @@
 <?php
-require_once '../includes/auth.php';
+require_once '../api/auth.php';
 requireLogin();
+require_once '../api/products.php';
+require_once '../api/categories.php';
+
+$error = '';
+
+// Proses tambah produk
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $barcode = trim($_POST['barcode']);
+    $name = trim($_POST['name']);
+    $category_id = (int)$_POST['category_id'];
+    $price = (float)$_POST['price'];
+    $cost = (float)$_POST['cost'];
+    $stock = (int)$_POST['stock'];
+    $is_active = (int)$_POST['is_active'];
+    
+    if (empty($barcode) || empty($name) || empty($category_id)) {
+        $error = 'Barcode, nama produk, dan kategori harus diisi!';
+    } else {
+        $result = createProduct($barcode, $name, $category_id, $price, $cost, $stock, $is_active);
+        if ($result['success']) {
+            header('Location: index.php?msg=added');
+            exit();
+        } else {
+            $error = $result['message'];
+        }
+    }
+}
+
+// Ambil list kategori
+$categories = getCategories();
 
 $page_title = "Tambah Produk";
 $page = 'produk';
@@ -32,69 +62,84 @@ $page = 'produk';
                 <div class="col-md-12">
                     <div class="card card-primary">
                         <div class="card-header">
-                            <h3 class="card-title">Form Produk</h3>
+                            <h3 class="card-title">Form Data Produk</h3>
                         </div>
                         
-                        <form id="productForm">
+                        <?php if ($error): ?>
+                            <div class="alert alert-danger m-3"><?php echo $error; ?></div>
+                        <?php endif; ?>
+                        
+                        <form method="POST" action="">
                             <div class="card-body">
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="barcode">Barcode</label>
-                                            <input type="text" class="form-control" id="barcode" placeholder="Scan atau masukkan barcode">
-                                            <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="generateBarcode()">
+                                            <label for="barcode">Barcode *</label>
+                                            <input type="text" class="form-control" name="barcode" id="barcode" 
+                                                   placeholder="Masukkan barcode" required 
+                                                   value="<?php echo isset($_POST['barcode']) ? $_POST['barcode'] : ''; ?>">
+                                                    <button type="button" class="btn btn-sm btn-secondary mt-1" onclick="generateBarcode()">
                                                 <i class="fas fa-barcode"></i> Generate Barcode
                                             </button>
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="name">Nama Produk</label>
-                                            <input type="text" class="form-control" id="name" placeholder="Nama produk" required>
+                                            <label for="name">Nama Produk *</label>
+                                            <input type="text" class="form-control" name="name" id="name" 
+                                                   placeholder="Nama produk" required
+                                                   value="<?php echo isset($_POST['name']) ? $_POST['name'] : ''; ?>">
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="category_id">Kategori</label>
-                                            <select class="form-control" id="category_id" required>
+                                            <label for="category_id">Kategori *</label>
+                                            <select class="form-control" name="category_id" id="category_id" required>
                                                 <option value="">Pilih Kategori</option>
-                                                <option value="1">Minuman</option>
-                                                <option value="2">Makanan</option>
-                                                <option value="3">Snack</option>
-                                                <option value="4">Rokok</option>
+                                                <?php foreach ($categories as $cat): ?>
+                                                    <option value="<?php echo $cat['id']; ?>" <?php echo (isset($_POST['category_id']) && $_POST['category_id'] == $cat['id']) ? 'selected' : ''; ?>>
+                                                        <?php echo $cat['name']; ?>
+                                                    </option>
+                                                <?php endforeach; ?>
                                             </select>
                                         </div>
                                     </div>
                                     
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="price">Harga Jual</label>
+                                            <label for="price">Harga Jual *</label>
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text">Rp</span>
                                                 </div>
-                                                <input type="number" class="form-control" id="price" placeholder="0" min="0" required>
+                                                <input type="number" class="form-control" name="price" id="price" 
+                                                       placeholder="0" min="0" required
+                                                       value="<?php echo isset($_POST['price']) ? $_POST['price'] : ''; ?>">
                                             </div>
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="cost">Harga Beli</label>
+                                            <label for="cost">Harga Beli *</label>
                                             <div class="input-group">
                                                 <div class="input-group-prepend">
                                                     <span class="input-group-text">Rp</span>
                                                 </div>
-                                                <input type="number" class="form-control" id="cost" placeholder="0" min="0" required>
+                                                <input type="number" class="form-control" name="cost" id="cost" 
+                                                       placeholder="0" min="0" required
+                                                       value="<?php echo isset($_POST['cost']) ? $_POST['cost'] : ''; ?>">
                                             </div>
                                         </div>
                                         
                                         <div class="form-group">
-                                            <label for="stock">Stok Awal</label>
-                                            <input type="number" class="form-control" id="stock" placeholder="0" min="0" required>
+                                            <label for="stock">Stok Awal *</label>
+                                            <input type="number" class="form-control" name="stock" id="stock" 
+                                                   placeholder="0" min="0" required
+                                                   value="<?php echo isset($_POST['stock']) ? $_POST['stock'] : '0'; ?>">
                                         </div>
                                         
                                         <div class="form-group">
                                             <label for="is_active">Status</label>
-                                            <select class="form-control" id="is_active">
-                                                <option value="1">Aktif</option>
-                                                <option value="0">Tidak Aktif</option>
+                                            <select class="form-control" name="is_active" id="is_active">
+                                                <option value="1" <?php echo (isset($_POST['is_active']) && $_POST['is_active'] == 1) ? 'selected' : 'selected'; ?>>Aktif</option>
+                                                <option value="0" <?php echo (isset($_POST['is_active']) && $_POST['is_active'] == 0) ? 'selected' : ''; ?>>Tidak Aktif</option>
                                             </select>
                                         </div>
                                     </div>
@@ -116,18 +161,10 @@ $page = 'produk';
         </div>
     </section>
 </div>
-
 <script>
 function generateBarcode() {
-    const barcode = Math.floor(Math.random() * 900000000000) + 100000000000;
-    document.getElementById('barcode').value = barcode;
+    var randomCode = Math.floor(Math.random() * 9000000000000) + 1000000000000;
+    document.getElementById('barcode').value = randomCode;
 }
-
-document.getElementById('productForm').addEventListener('submit', function(e) {
-    e.preventDefault();
-    alert('Produk berhasil disimpan!');
-    window.location.href = 'index.php';
-});
 </script>
-
 <?php include '../includes/footer.php'; ?>

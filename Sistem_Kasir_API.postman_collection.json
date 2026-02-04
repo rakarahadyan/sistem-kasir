@@ -1,0 +1,767 @@
+{
+	"info": {
+		"_postman_id": "12345678-1234-1234-1234-123456789abc",
+		"name": "Sistem Kasir API",
+		"description": "Collection untuk API Sistem Kasir - Semua endpoint menggunakan GET dan POST only (function-based pattern)",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin\",\n    \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth.php"]
+						},
+						"description": "Login untuk mendapatkan session. Password default: 123456"
+					}
+				},
+				{
+					"name": "Check Session",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/auth.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth.php"]
+						},
+						"description": "Cek status login dan mendapatkan informasi user yang sedang login"
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"logout\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "auth.php"]
+						},
+						"description": "Logout dan menghapus session"
+					}
+				}
+			],
+			"description": "Endpoint untuk authentication (login, logout, check session)"
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "Get All Categories",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/categories.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories.php"]
+						},
+						"description": "Mendapatkan semua kategori produk"
+					}
+				},
+				{
+					"name": "Get Category by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/categories.php?id=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories.php"],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mendapatkan kategori berdasarkan ID"
+					}
+				},
+				{
+					"name": "Create Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Kategori Baru\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/categories.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories.php"]
+						},
+						"description": "Membuat kategori baru"
+					}
+				},
+				{
+					"name": "Update Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"name\": \"Kategori Updated\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/categories.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories.php"]
+						},
+						"description": "Update kategori (deteksi dari ada id di body)"
+					}
+				},
+				{
+					"name": "Delete Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"delete\",\n    \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/categories.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "categories.php"]
+						},
+						"description": "Hapus kategori"
+					}
+				}
+			],
+			"description": "Endpoint untuk mengelola kategori produk"
+		},
+		{
+			"name": "Customers",
+			"item": [
+				{
+					"name": "Get All Customers",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/customers.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customers.php"]
+						},
+						"description": "Mendapatkan semua customer"
+					}
+				},
+				{
+					"name": "Get Customer by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/customers.php?id=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customers.php"],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mendapatkan customer berdasarkan ID"
+					}
+				},
+				{
+					"name": "Create Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Budi Santoso\",\n    \"phone\": \"081234567890\",\n    \"address\": \"Jl. Merdeka No. 123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/customers.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customers.php"]
+						},
+						"description": "Membuat customer baru"
+					}
+				},
+				{
+					"name": "Update Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"name\": \"Budi Updated\",\n    \"phone\": \"081234567890\",\n    \"address\": \"Jl. Merdeka No. 456\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/customers.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customers.php"]
+						},
+						"description": "Update customer"
+					}
+				},
+				{
+					"name": "Delete Customer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"delete\",\n    \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/customers.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "customers.php"]
+						},
+						"description": "Hapus customer"
+					}
+				}
+			],
+			"description": "Endpoint untuk mengelola customer/pelanggan"
+		},
+		{
+			"name": "Products",
+			"item": [
+				{
+					"name": "Get All Products",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products.php"]
+						},
+						"description": "Mendapatkan semua produk dengan info kategori"
+					}
+				},
+				{
+					"name": "Get Product by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products.php?id=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products.php"],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mendapatkan produk berdasarkan ID"
+					}
+				},
+				{
+					"name": "Get Barcode by Product Name",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/products.php?action=get_barcode&name=Indomie",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products.php"],
+							"query": [
+								{
+									"key": "action",
+									"value": "get_barcode"
+								},
+								{
+									"key": "name",
+									"value": "Indomie"
+								}
+							]
+						},
+						"description": "Mencari barcode produk berdasarkan nama (untuk auto-fill di POS)"
+					}
+				},
+				{
+					"name": "Create Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "barcode",
+									"value": "8992761111111",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Indomie Goreng",
+									"type": "text"
+								},
+								{
+									"key": "category_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "3500",
+									"type": "text"
+								},
+								{
+									"key": "cost",
+									"value": "2500",
+									"type": "text"
+								},
+								{
+									"key": "stock",
+									"value": "100",
+									"type": "text"
+								},
+								{
+									"key": "is_active",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products.php"]
+						},
+						"description": "Membuat produk baru (form-data)"
+					}
+				},
+				{
+					"name": "Update Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "barcode",
+									"value": "8992761111111",
+									"type": "text"
+								},
+								{
+									"key": "name",
+									"value": "Indomie Goreng Updated",
+									"type": "text"
+								},
+								{
+									"key": "category_id",
+									"value": "1",
+									"type": "text"
+								},
+								{
+									"key": "price",
+									"value": "4000",
+									"type": "text"
+								},
+								{
+									"key": "cost",
+									"value": "2800",
+									"type": "text"
+								},
+								{
+									"key": "stock",
+									"value": "150",
+									"type": "text"
+								},
+								{
+									"key": "is_active",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products.php"]
+						},
+						"description": "Update produk (deteksi dari ada id)"
+					}
+				},
+				{
+					"name": "Delete Product",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/x-www-form-urlencoded"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "action",
+									"value": "delete",
+									"type": "text"
+								},
+								{
+									"key": "id",
+									"value": "1",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/products.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "products.php"]
+						},
+						"description": "Hapus produk (soft delete)"
+					}
+				}
+			],
+			"description": "Endpoint untuk mengelola produk"
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users.php"]
+						},
+						"description": "Mendapatkan semua user (role: admin/kasir)"
+					}
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/users.php?id=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users.php"],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mendapatkan user berdasarkan ID"
+					}
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"kasir1\",\n    \"password\": \"123456\",\n    \"name\": \"Kasir Satu\",\n    \"role\": \"kasir\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users.php"]
+						},
+						"description": "Membuat user baru (password akan di-hash dengan bcrypt)"
+					}
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"username\": \"admin\",\n    \"name\": \"Administrator Updated\",\n    \"role\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users.php"]
+						},
+						"description": "Update user (tanpa password jika tidak ingin ganti)"
+					}
+				},
+				{
+					"name": "Update User with Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 1,\n    \"username\": \"admin\",\n    \"password\": \"newpassword123\",\n    \"name\": \"Administrator\",\n    \"role\": \"admin\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users.php"]
+						},
+						"description": "Update user dengan ganti password"
+					}
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"delete\",\n    \"id\": 2\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "users.php"]
+						},
+						"description": "Hapus user"
+					}
+				}
+			],
+			"description": "Endpoint untuk mengelola user sistem"
+		},
+		{
+			"name": "Transactions",
+			"item": [
+				{
+					"name": "Get All Transactions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions.php"]
+						},
+						"description": "Mendapatkan semua transaksi"
+					}
+				},
+				{
+					"name": "Get Transactions with Filter",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions.php?search=TRX&date_from=2026-02-01&date_to=2026-02-04&status=selesai",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions.php"],
+							"query": [
+								{
+									"key": "search",
+									"value": "TRX"
+								},
+								{
+									"key": "date_from",
+									"value": "2026-02-01"
+								},
+								{
+									"key": "date_to",
+									"value": "2026-02-04"
+								},
+								{
+									"key": "status",
+									"value": "selesai"
+								}
+							]
+						},
+						"description": "Filter transaksi berdasarkan search, tanggal, dan status"
+					}
+				},
+				{
+					"name": "Get Transaction by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/transactions.php?id=1",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions.php"],
+							"query": [
+								{
+									"key": "id",
+									"value": "1"
+								}
+							]
+						},
+						"description": "Mendapatkan detail transaksi dengan items dan payment info"
+					}
+				},
+				{
+					"name": "Create Transaction (POS)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer_id\": 1,\n    \"items\": [\n        {\n            \"product_id\": 1,\n            \"price\": 3500,\n            \"quantity\": 2,\n            \"discount\": 0\n        },\n        {\n            \"product_id\": 2,\n            \"price\": 5000,\n            \"quantity\": 1,\n            \"discount\": 500\n        }\n    ],\n    \"discount\": 0,\n    \"tax\": 0,\n    \"payment\": {\n        \"method\": \"cash\",\n        \"cash\": 15000,\n        \"change\": 3000\n    }\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions.php"]
+						},
+						"description": "Membuat transaksi baru dari POS. Auto generate transaction_code, update stock, insert payment"
+					}
+				},
+				{
+					"name": "Cancel Transaction",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"action\": \"cancel\",\n    \"id\": 1\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/transactions.php",
+							"host": ["{{base_url}}"],
+							"path": ["api", "transactions.php"]
+						},
+						"description": "Batalkan transaksi dan kembalikan stok produk"
+					}
+				}
+			],
+			"description": "Endpoint untuk mengelola transaksi (POS)"
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Get Dashboard Stats",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/reports.php?type=dashboard",
+							"host": ["{{base_url}}"],
+							"path": ["api", "reports.php"],
+							"query": [
+								{
+									"key": "type",
+									"value": "dashboard"
+								}
+							]
+						},
+						"description": "Statistik untuk dashboard: total transaksi hari ini, penjualan bulan ini, produk, dll"
+					}
+				}
+			],
+			"description": "Endpoint untuk laporan dan statistik"
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost/sistem-kasir",
+			"type": "string"
+		}
+	]
+}

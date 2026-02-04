@@ -1,9 +1,39 @@
 <?php
-require_once '../includes/auth.php';
+require_once '../api/auth.php';
 requireLogin();
 
 $page_title = "Detail Transaksi";
 $page = 'riwayat';
+
+require_once '../config/database.php';
+$db = Database::getInstance()->getConnection();
+
+$id = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+
+$query = "SELECT t.*, u.name as cashier_name, c.name as customer_name, c.phone as customer_phone, py.method as payment_method
+          FROM transactions t
+          LEFT JOIN users u ON t.user_id = u.id
+          LEFT JOIN customers c ON t.customer_id = c.id
+          LEFT JOIN payments py ON t.id = py.transaction_id
+          WHERE t.id = $id";
+$result = $db->query($query);
+$transaction = $result->fetch_assoc();
+
+if (!$transaction) {
+    header('Location: index.php');
+    exit;
+}
+
+$query_items = "SELECT ti.*, p.barcode as product_barcode, p.name as product_name
+                FROM transaction_items ti
+                LEFT JOIN products p ON ti.product_id = p.id
+                WHERE ti.transaction_id = $id
+                ORDER BY ti.id";
+$result_items = $db->query($query_items);
+$items = [];
+while ($row = $result_items->fetch_assoc()) {
+    $items[] = $row;
+}
 ?>
 <?php include '../includes/header.php'; ?>
 <?php include '../includes/sidebar.php'; ?>
@@ -35,7 +65,7 @@ $page = 'riwayat';
                             <div class="col-12">
                                 <h4>
                                     <i class="fas fa-shopping-cart"></i> TOKO MAKMUR
-                                    <small class="float-right">Tanggal: 15/01/2024</small>
+                                    <small class="float-right">Tanggal: <?php echo date('d/m/Y', strtotime($transaction['created_at'])); ?></small>
                                 </h4>
                             </div>
                         </div>
@@ -55,21 +85,18 @@ $page = 'riwayat';
                             <div class="col-sm-4 invoice-col">
                                 Kepada
                                 <address>
-                                    <strong>Budi Santoso</strong><br>
-                                    Jl. Merdeka No. 123<br>
-                                    Jakarta, 12345<br>
-                                    Telp: 08123456789<br>
-                                    Email: budi@email.com
+                                    <strong><?php echo $transaction['customer_name'] ?: 'Umum'; ?></strong><br>
+                                    <?php if ($transaction['customer_phone']): ?>
+                                    Telp: <?php echo $transaction['customer_phone']; ?><br>
+                                    <?php endif; ?>
                                 </address>
                             </div>
                             
                             <div class="col-sm-4 invoice-col">
-                                <b>Invoice #TRX-20240115-001</b><br>
+                                <b>Invoice #<?php echo $transaction['invoice']; ?></b><br>
                                 <br>
-                                <b>Order ID:</b> 4F3S8J<br>
-                                <b>Tanggal Transaksi:</b> 15/01/2024 14:30:45<br>
-                                <b>Kasir:</b> Admin<br>
-                                <b>Status:</b> <span class="badge badge-success">Selesai</span>
+                                <b>Tanggal Transaksi:</b> <?php echo date('d/m/Y H:i:s', strtotime($transaction['created_at'])); ?><br>
+                                <b>Kasir:</b> <?php echo $transaction['cashier_name']; ?><br>
                             </div>
                         </div>
                         
@@ -88,33 +115,20 @@ $page = 'riwayat';
                                         </tr>
                                     </thead>
                                     <tbody>
+                                        <?php 
+                                        $no = 1;
+                                        foreach ($items as $item): 
+                                        ?>
                                         <tr>
-                                            <td>1</td>
-                                            <td>Kopi Kapal Api 200gr</td>
-                                            <td>899999900001</td>
-                                            <td>Rp 15.000</td>
-                                            <td>2</td>
-                                            <td>Rp 0</td>
-                                            <td>Rp 30.000</td>
+                                            <td><?php echo $no++; ?></td>
+                                            <td><?php echo $item['product_name']; ?></td>
+                                            <td><?php echo $item['barcode'] ?: $item['product_barcode']; ?></td>
+                                            <td>Rp <?php echo number_format($item['price'], 0, ',', '.'); ?></td>
+                                            <td><?php echo $item['qty']; ?></td>
+                                            <td>Rp <?php echo number_format($item['discount'], 0, ',', '.'); ?></td>
+                                            <td>Rp <?php echo number_format($item['total'], 0, ',', '.'); ?></td>
                                         </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>Indomie Goreng</td>
-                                            <td>899999900002</td>
-                                            <td>Rp 3.500</td>
-                                            <td>10</td>
-                                            <td>Rp 5.000</td>
-                                            <td>Rp 30.000</td>
-                                        </tr>
-                                        <tr>
-                                            <td>3</td>
-                                            <td>Aqua 600ml</td>
-                                            <td>899999900003</td>
-                                            <td>Rp 3.000</td>
-                                            <td>5</td>
-                                            <td>Rp 0</td>
-                                            <td>Rp 15.000</td>
-                                        </tr>
+                                        <?php endforeach; ?>
                                     </tbody>
                                 </table>
                             </div>
@@ -124,12 +138,7 @@ $page = 'riwayat';
                             <div class="col-6">
                                 <p class="lead">Metode Pembayaran:</p>
                                 <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
-                                    <i class="fas fa-money-bill-wave"></i> Cash
-                                </p>
-                                
-                                <p class="lead">Catatan:</p>
-                                <p class="text-muted well well-sm shadow-none" style="margin-top: 10px;">
-                                    Terima kasih telah berbelanja
+                                    <i class="fas fa-money-bill-wave"></i> <?php echo ucfirst($transaction['payment_method']); ?>
                                 </p>
                             </div>
                             
@@ -138,28 +147,30 @@ $page = 'riwayat';
                                     <table class="table">
                                         <tr>
                                             <th style="width:50%">Subtotal:</th>
-                                            <td>Rp 200.000</td>
+                                            <td>Rp <?php echo number_format($transaction['total'], 0, ',', '.'); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Diskon:</th>
-                                            <td>Rp 15.000</td>
+                                            <td>Rp <?php echo number_format($transaction['discount'], 0, ',', '.'); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Pajak:</th>
-                                            <td>Rp 0</td>
+                                            <td>Rp <?php echo number_format($transaction['tax'], 0, ',', '.'); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Total:</th>
-                                            <td><strong>Rp 185.000</strong></td>
+                                            <td><strong>Rp <?php echo number_format($transaction['total'] - ($transaction['tax'] + $transaction['discount']), 0, ',', '.'); ?></strong></td>
                                         </tr>
+                                        <?php if ($transaction['cash_paid']): ?>
                                         <tr>
-                                            <th>Bayar (Cash):</th>
-                                            <td>Rp 200.000</td>
+                                            <th>Bayar (<?php echo ucfirst($transaction['payment_method']); ?>):</th>
+                                            <td>Rp <?php echo number_format($transaction['cash_paid'], 0, ',', '.'); ?></td>
                                         </tr>
                                         <tr>
                                             <th>Kembalian:</th>
-                                            <td><strong class="text-success">Rp 15.000</strong></td>
+                                            <td><strong class="text-success">Rp <?php echo number_format($transaction['change_amount'], 0, ',', '.'); ?></strong></td>
                                         </tr>
+                                        <?php endif; ?>
                                     </table>
                                 </div>
                             </div>
@@ -167,13 +178,10 @@ $page = 'riwayat';
                         
                         <div class="row no-print">
                             <div class="col-12">
-                                <button type="button" class="btn btn-default" onclick="window.print()">
-                                    <i class="fas fa-print"></i> Print
-                                </button>
-                                <button type="button" class="btn btn-success float-right">
-                                    <i class="far fa-credit-card"></i> Submit Payment
-                                </button>
-                                <a href="index.php" class="btn btn-primary float-right" style="margin-right: 5px;">
+                                <a href="print.php?id=<?php echo $transaction['id']; ?>" target="_blank" class="btn btn-default">
+                                    <i class="fas fa-print"></i> Print Struk
+                                </a>
+                                <a href="index.php" class="btn btn-primary float-right">
                                     <i class="fas fa-arrow-left"></i> Kembali
                                 </a>
                             </div>
@@ -184,11 +192,5 @@ $page = 'riwayat';
         </div>
     </section>
 </div>
-
-<script>
-function printInvoice() {
-    window.print();
-}
-</script>
 
 <?php include '../includes/footer.php'; ?>

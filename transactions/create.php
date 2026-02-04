@@ -40,16 +40,16 @@ $page = 'transaksi';
                         <div class="card-body">
                             <div class="form-group">
                                 <label>Scan Barcode</label>
-                                <input type="text" class="form-control" id="scanBarcode" placeholder="Scan barcode..." autofocus>
+                                <input type="text" class="form-control" id="scanBarcode" placeholder="Scan barcode atau ketik kode..." autofocus>
                             </div>
                             
                             <div class="form-group">
-                                <label>Cari Produk</label>
+                                <label>Cari Produk (Nama/Barcode)</label>
                                 <div class="input-group">
-                                    <input type="text" class="form-control" id="searchProduct" placeholder="Nama produk...">
+                                    <input type="text" class="form-control" id="searchProduct" placeholder="Ketik nama atau barcode produk...">
                                     <div class="input-group-append">
-                                        <button class="btn btn-outline-secondary" type="button" onclick="searchProduct()">
-                                            <i class="fas fa-search"></i>
+                                        <button class="btn btn-outline-secondary" type="button" onclick="clearSearch()">
+                                            <i class="fas fa-times"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -80,9 +80,7 @@ $page = 'transaksi';
                                 <label>Pilih Pelanggan</label>
                                 <select class="form-control" id="customer">
                                     <option value="">Umum</option>
-                                    <option value="1">Budi Santoso (08123456789)</option>
-                                    <option value="2">Siti Rahayu (08234567890)</option>
-                                    <option value="3">Ahmad Fauzi (08345678901)</option>
+                                    <!-- Pelanggan dari database akan dimuat otomatis -->
                                 </select>
                             </div>
                             
@@ -240,39 +238,71 @@ $page = 'transaksi';
 
 <script>
 let cart = [];
+let products = [];
 
-// Data produk dummy
-const products = [
-    { id: 1, barcode: '899999900001', name: 'Kopi Kapal Api 200gr', price: 15000, stock: 45 },
-    { id: 2, barcode: '899999900002', name: 'Indomie Goreng', price: 3500, stock: 12 },
-    { id: 3, barcode: '899999900003', name: 'Aqua 600ml', price: 3000, stock: 3 },
-    { id: 4, barcode: '899999900004', name: 'Roti Tawar', price: 12000, stock: 20 },
-    { id: 5, barcode: '899999900005', name: 'Susu Ultra 250ml', price: 6000, stock: 15 }
-];
+async function loadInitialData() {
+    try {
+        const [pRes, cRes] = await Promise.all([
+            fetch('/sistem-kasir/api/products.php', { credentials: 'include' }),
+            fetch('/sistem-kasir/api/customers.php', { credentials: 'include' })
+        ]);
+        const pData = await pRes.json();
+        const cData = await cRes.json();
+        products = (pData.success && Array.isArray(pData.data)) ? pData.data : [];
+        const custSel = document.getElementById('customer');
+        if (cData.success && Array.isArray(cData.data)) {            
+            for (let i = custSel.options.length - 1; i >= 1; i--) custSel.remove(i);
+            cData.data.forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.id;
+                opt.text = `${c.name} (${c.phone || ''})`;
+                custSel.appendChild(opt);
+            });
+        }
+    } catch (e) {
+        console.error('Failed to load data', e);
+    }
+}
+document.addEventListener('DOMContentLoaded', loadInitialData);
 
 function searchProduct() {
-    const search = document.getElementById('searchProduct').value.toLowerCase();
+    const barcodeSearch = document.getElementById('scanBarcode').value.trim();
+    const nameSearch = document.getElementById('searchProduct').value.toLowerCase().trim();
     const productList = document.getElementById('productList');
+        
+    const search = barcodeSearch || nameSearch;
     
     productList.innerHTML = '';
     
-    if (search) {
-        const filtered = products.filter(p => 
-            p.name.toLowerCase().includes(search) || 
-            p.barcode.includes(search)
-        );
+    if (search.length >= 2) {
+        let filtered = [];
+                
+        if (barcodeSearch) {
+            filtered = products.filter(p => p.barcode.includes(barcodeSearch));
+        }         
+        else if (nameSearch) {
+            filtered = products.filter(p => 
+                p.name.toLowerCase().includes(nameSearch) || 
+                p.barcode.toLowerCase().includes(nameSearch)
+            );
+        }
         
-        if (filtered.length > 0) {
+        if (filtered.length > 0) {            
+            if (filtered.length === 1 && filtered[0].barcode === barcodeSearch) {
+                selectProduct(filtered[0].id);
+                return;
+            }
+            
             filtered.forEach(product => {
                 productList.innerHTML += `
-                    <div class="card mb-2">
+                    <div class="card mb-2 cursor-pointer" style="cursor: pointer;" onclick="selectProduct(${product.id})">
                         <div class="card-body p-2">
                             <h6 class="mb-1">${product.name}</h6>
-                            <small class="text-muted">${product.barcode} | Stok: ${product.stock}</small>
+                            <small class="text-muted">Barcode: ${product.barcode} | Stok: ${product.stock}</small>
                             <div class="mt-2">
                                 <strong class="text-primary">Rp ${product.price.toLocaleString()}</strong>
                                 <button class="btn btn-sm btn-outline-primary float-right" 
-                                        onclick="selectProduct(${product.id})">
+                                        onclick="event.stopPropagation(); selectProduct(${product.id})">
                                     <i class="fas fa-plus"></i> Pilih
                                 </button>
                             </div>
@@ -283,15 +313,33 @@ function searchProduct() {
         } else {
             productList.innerHTML = '<p class="text-center text-muted">Produk tidak ditemukan</p>';
         }
+    } else if (search.length === 0) {
+        productList.innerHTML = '';
     }
+}
+
+function clearSearch() {
+    document.getElementById('searchProduct').value = '';
+    document.getElementById('scanBarcode').value = '';
+    document.getElementById('productList').innerHTML = '';
+    document.getElementById('scanBarcode').focus();
 }
 
 function selectProduct(productId) {
     const product = products.find(p => p.id === productId);
-    if (product) {
-        document.getElementById('scanBarcode').value = product.barcode;
+    if (product) {        
+        document.getElementById('scanBarcode').value = product.barcode;        
         document.getElementById('searchProduct').value = product.name;
-        updateCartSummary();
+        document.getElementById('productList').innerHTML = '';
+                
+        const barcodeInput = document.getElementById('scanBarcode');
+        barcodeInput.classList.add('bg-success', 'text-white');
+        setTimeout(() => {
+            barcodeInput.classList.remove('bg-success', 'text-white');
+        }, 500);
+                
+        document.getElementById('quantity').focus();
+        document.getElementById('quantity').select();
     }
 }
 
@@ -304,7 +352,7 @@ function addToCart() {
         return;
     }
     
-    const product = products.find(p => p.barcode === barcode);
+    const product = products.find(p => p.barcode === barcode || String(p.id) === String(barcode));
     if (!product) {
         alert('Produk tidak ditemukan!');
         return;
@@ -314,16 +362,17 @@ function addToCart() {
         alert('Stok tidak mencukupi!');
         return;
     }
-    
-    // Cek apakah produk sudah ada di cart
+        
     const existingItem = cart.find(item => item.id === product.id);
     if (existingItem) {
         existingItem.quantity += quantity;
     } else {
         cart.push({
             id: product.id,
+            product_id: product.id,
+            barcode: product.barcode,
             name: product.name,
-            price: product.price,
+            price: parseFloat(product.price),
             quantity: quantity,
             discount: 0
         });
@@ -454,52 +503,116 @@ function processPayment() {
         return;
     }
     
-    if (confirm('Simpan transaksi dan cetak struk?')) {
-        // Simulasi penyimpanan dan cetak struk
-        const transactionData = {
-            cart: cart,
-            customer: document.getElementById('customer').value,
-            subtotal: total,
-            discount: document.getElementById('discount').value,
-            tax: document.getElementById('tax').value,
-            total: total,
+    if (!confirm('Simpan transaksi dan cetak struk?')) return;
+
+    const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked').value;
+    const transactionPayload = {
+        customer_id: document.getElementById('customer').value || null,
+        items: cart,
+        discount: parseFloat(document.getElementById('discount').value) || 0,
+        tax: parseFloat(document.getElementById('tax').value) || 0,
+        payment: {
+            method: paymentMethod,
             cash: cash,
             change: cash - total
-        };
-        
-        alert('Transaksi berhasil disimpan!');
-        
-        // Reset form
-        cart = [];
-        clearForm();
-        updateCartDisplay();
-        
-        // Redirect ke halaman struk
-        // window.open('receipt.php', '_blank');
-    }
+        }
+    };
+
+    fetch('/sistem-kasir/api/transactions.php', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(transactionPayload)
+    }).then(r => {
+        return r.json();
+    }).then(data => {
+        if (data.success) {
+            alert('Transaksi berhasil disimpan! Kode: ' + data.transaction_code);            
+            window.open('print.php?id=' + data.transaction_id, '_blank');
+            cart = [];
+            clearForm();
+            updateCartDisplay();
+        } else {
+            alert(data.message || 'Gagal menyimpan transaksi');
+        }
+    }).catch(err => {
+        console.error('Error:', err);
+        alert('Network error saat menyimpan transaksi. Cek console untuk detail.');
+    });
 }
 
 function addCustomer() {
-    const name = document.getElementById('customerName').value;
-    const phone = document.getElementById('customerPhone').value;
-    
-    if (name && phone) {
-        alert(`Pelanggan ${name} berhasil ditambahkan!`);
-        $('#addCustomerModal').modal('hide');
-        
-        // Reset modal
-        document.getElementById('customerName').value = '';
-        document.getElementById('customerPhone').value = '';
-    } else {
-        alert('Harap isi semua field!');
-    }
+    const name = document.getElementById('customerName').value.trim();
+    const phone = document.getElementById('customerPhone').value.trim();
+    if (!name || !phone) { alert('Harap isi semua field!'); return; }
+    fetch('/sistem-kasir/api/customers.php', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, phone })
+    }).then(r => r.json()).then(data => {
+        if (data.success) {
+            alert(`Pelanggan ${name} berhasil ditambahkan!`);
+            $('#addCustomerModal').modal('hide');
+            document.getElementById('customerName').value = '';
+            document.getElementById('customerPhone').value = '';            
+            loadInitialData();
+        } else {
+            alert(data.message || 'Gagal menambahkan pelanggan');
+        }
+    }).catch(err => alert('Network error'));
 }
 
-// Event listeners
+document.getElementById('scanBarcode').addEventListener('input', function(e) {    
+    searchProduct();
+});
+
 document.getElementById('scanBarcode').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
         e.preventDefault();
         addToCart();
+    }
+});
+
+let searchTimeout;
+document.getElementById('searchProduct').addEventListener('input', function(e) {
+    const name = e.target.value.trim();
+        
+    if (searchTimeout) clearTimeout(searchTimeout);
+        
+    searchProduct();
+        
+    if (name.length >= 3) {
+        searchTimeout = setTimeout(async () => {
+            try {
+                const response = await fetch(`/sistem-kasir/api/products.php?action=get_barcode&name=${encodeURIComponent(name)}`, {
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                
+                if (data.success && data.data) {                    
+                    document.getElementById('scanBarcode').value = data.data.barcode;
+                                        
+                    const barcodeInput = document.getElementById('scanBarcode');
+                    barcodeInput.classList.add('bg-info', 'text-white');
+                    setTimeout(() => {
+                        barcodeInput.classList.remove('bg-info', 'text-white');
+                    }, 300);
+                }
+            } catch (err) {
+                console.error('Error fetching barcode:', err);
+            }
+        }, 500);
+    }
+});
+
+document.getElementById('searchProduct').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();        
+        const firstProduct = document.querySelector('#productList .card');
+        if (firstProduct) {
+            firstProduct.click();
+        }
     }
 });
 

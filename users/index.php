@@ -1,7 +1,11 @@
 <?php
-require_once '../includes/auth.php';
+require_once '../api/auth.php';
 requireLogin();
 checkRole('admin');
+require_once '../api/users.php';
+
+$search = isset($_GET['search']) ? $_GET['search'] : '';
+$users = getUsers($search);
 
 $page_title = "Manajemen User";
 $page = 'user';
@@ -28,56 +32,110 @@ $page = 'user';
 
     <section class="content">
         <div class="container-fluid">
+            <?php if (isset($_GET['msg'])): ?>
+                <div class="alert alert-success alert-dismissible fade show">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <?php
+                    if ($_GET['msg'] == 'added') echo 'User berhasil ditambahkan!';
+                    elseif ($_GET['msg'] == 'updated') echo 'User berhasil diupdate!';
+                    elseif ($_GET['msg'] == 'deleted') echo 'User berhasil dihapus!';
+                    ?>
+                </div>
+            <?php endif; ?>
+            
             <div class="row">
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
                             <h3 class="card-title">Daftar User</h3>
                             <div class="card-tools">
-                                <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addUserModal">
+                                <a href="add.php" class="btn btn-sm btn-primary">
                                     <i class="fas fa-user-plus"></i> Tambah User
-                                </button>
+                                </a>
                             </div>
                         </div>
                         
                         <div class="card-body">
+                            <form method="GET" action="" class="mb-3">
+                                <div class="input-group">
+                                    <input type="text" name="search" class="form-control" 
+                                           placeholder="Cari nama atau username..." 
+                                           value="<?php echo $search; ?>">
+                                    <div class="input-group-append">
+                                        <button class="btn btn-primary" type="submit">
+                                            <i class="fas fa-search"></i> Cari
+                                        </button>
+                                        <?php if ($search): ?>
+                                            <a href="index.php" class="btn btn-secondary">
+                                                <i class="fas fa-times"></i> Reset
+                                            </a>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </form>
+                            
                             <div class="table-responsive">
                                 <table class="table table-bordered table-hover">
                                     <thead>
                                         <tr>
-                                            <th>#</th>
+                                            <th width="50">#</th>
                                             <th>Nama</th>
                                             <th>Username</th>
                                             <th>Role</th>
-                                            <th>Status</th>
-                                            <th>Terakhir Login</th>
-                                            <th>Aksi</th>
+                                            <th>Tanggal Dibuat</th>
+                                            <th width="150">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <tr>
-                                            <td>1</td>
-                                            <td>Administrator</td>
-                                            <td>admin</td>
-                                            <td><span class="badge badge-danger">Admin</span></td>
-                                            <td><span class="badge badge-success">Aktif</span></td>
-                                            <td>2024-01-15 14:30</td>
-                                            <td>
-                                                <button class="btn btn-sm btn-warning" data-toggle="modal" data-target="#editUserModal">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-info">
-                                                    <i class="fas fa-key"></i>
-                                                </button>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <td>2</td>
-                                            <td>Kasir 1</td>
-                                            <td>kasir1</td>
+                                        <?php if (empty($users)): ?>
+                                            <tr>
+                                                <td colspan="6" class="text-center">Tidak ada data user</td>
+                                            </tr>
+                                        <?php else: ?>
+                                            <?php $no = 1; foreach ($users as $user): ?>
+                                                <tr>
+                                                    <td><?php echo $no++; ?></td>
+                                                    <td><?php echo $user['name']; ?></td>
+                                                    <td><?php echo $user['username']; ?></td>
+                                                    <td>
+                                                        <?php
+                                                        if ($user['role'] == 'admin') {
+                                                            echo '<span class="badge badge-danger">Admin</span>';
+                                                        } elseif ($user['role'] == 'kasir') {
+                                                            echo '<span class="badge badge-primary">Kasir</span>';
+                                                        } else {
+                                                            echo '<span class="badge badge-info">Pemilik</span>';
+                                                        }
+                                                        ?>
+                                                    </td>
+                                                    <td><?php echo date('d/m/Y H:i', strtotime($user['created_at'])); ?></td>
+                                                    <td>
+                                                        <a href="edit.php?id=<?php echo $user['id']; ?>" class="btn btn-sm btn-warning">
+                                                            <i class="fas fa-edit"></i>
+                                                        </a>
+                                                        <?php if ($user['id'] != $_SESSION['user_id']): ?>
+                                                            <a href="delete.php?id=<?php echo $user['id']; ?>" 
+                                                               class="btn btn-sm btn-danger"
+                                                               onclick="return confirm('Yakin ingin menghapus user ini?')">
+                                                                <i class="fas fa-trash"></i>
+                                                            </a>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        <?php endif; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+
+<?php include '../includes/footer.php'; ?>
                                             <td><span class="badge badge-primary">Kasir</span></td>
                                             <td><span class="badge badge-success">Aktif</span></td>
                                             <td>2024-01-14 10:15</td>
