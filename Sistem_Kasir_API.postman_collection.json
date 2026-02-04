@@ -760,7 +760,7 @@
 	"variable": [
 		{
 			"key": "base_url",
-			"value": "http://localhost/sistem-kasir",
+			"value": "https://rahadyanhnd.my.id/sistem-kasir",
 			"type": "string"
 		}
 	]
