@@ -93,7 +93,7 @@ while ($row = $result_items->fetch_assoc()) {
                             </div>
                             
                             <div class="col-sm-4 invoice-col">
-                                <b>Invoice #<?php echo $transaction['invoice']; ?></b><br>
+                                <b>Invoice #<?php echo $transaction['transaction_code']; ?></b><br>
                                 <br>
                                 <b>Tanggal Transaksi:</b> <?php echo date('d/m/Y H:i:s', strtotime($transaction['created_at'])); ?><br>
                                 <b>Kasir:</b> <?php echo $transaction['cashier_name']; ?><br>
